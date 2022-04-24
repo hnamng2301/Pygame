@@ -18,8 +18,8 @@ pygame.display.set_icon(icon)
 playerImage = pygame.image.load(".\\images\\player.png") # Player image
 playerX = 370  # X root-coordinate of player
 playerY = 480  # Y root-coordinate of player
-playerChange = 0  # Change of player in loop
-
+playerChangeX = 0  # Change of player in loop
+playerChangeY = 0
 # Information for enemy
 # enemyImage = pygame.image.load(".\\images\\enemy.png") # Enemy image
 # enemyX = random.randint(0, 1000)  # X root-coordinate of enemy
@@ -31,14 +31,14 @@ enemyX = []
 enemyY = []
 enemyChangeX = []
 enemyChangeY = []
-enemyNums = 10
+enemyNums = 5
 
 for enemy in range(enemyNums):
   enemyImage.append(pygame.image.load(".\\images\\enemy.png"))
   enemyX.append(random.randint(0, 736))
   enemyY.append(random.randint(50, 150))
-  enemyChangeX.append(4)
-  enemyChangeY.append(10)
+  enemyChangeX.append(2)
+  enemyChangeY.append(40)
 
 # Information for attacking
 bulletImage = pygame.image.load(".\images\\bullet.png")
@@ -50,11 +50,12 @@ bulletState = 'ready'
 
 #Score
 score = 0
-print(pygame.font.get_fonts())
+# print(pygame.font.get_fonts())
 scoreFont = pygame.font.SysFont('glasgow.ttf', 40)
 gameOverFont = pygame.font.SysFont('microsquare.ttf', 60)
 textX = 10
 textY = 10
+isOver = True
 
 # Background
 background = pygame.image.load(".\images\\background.jpg")
@@ -75,8 +76,8 @@ def fire(x, y): # Function for firing
 
 
 def isCollision(enemyX, enemyY, bulletX, bulletY): # Function for checking collision
-  distance = math.sqrt(math.pow(enemyX - bulletX, 2) + math.pow(enemyY - bulletY, 2))
-  if distance <= 27:
+  distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
+  if distance < 27:
     return True
   return False
 
@@ -91,7 +92,7 @@ def showScore(x, y): # Function for show score
 
 def gameOver():
   gameOverText = gameOverFont.render('GAME OVER', True, (255, 255, 255))
-  screen.blit(gameOverText, (200, 200))
+  screen.blit(gameOverText, (250, 250))
 
 ##############
 running = True
@@ -105,36 +106,50 @@ while running:
     
     if event.type == pygame.KEYDOWN:
       if event.key == pygame.K_LEFT:
-        playerChange -= 1
+        playerChangeX = -3
       elif event.key == pygame.K_RIGHT:
-        playerChange += 1
+        playerChangeX = 3
+      elif event.key == pygame.K_DOWN:
+        playerChangeY = 3
+      elif event.key == pygame.K_UP:
+        playerChangeY = -3
       elif event.key == pygame.K_SPACE:
         if bulletState == 'ready':
-          bulletX = playerX
-          fire(bulletX, bulletY)
           bulletSound = mixer.Sound('.\images\\laser.wav')
           bulletSound.play()
+          bulletX = playerX
+          fire(bulletX, bulletY)
 
     if event.type == pygame.KEYUP:
       if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-        playerChange = 0
+        playerChangeX = 0
+      elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
+        playerChangeY = 0
 
-  playerX += playerChange
+  playerX += playerChangeX
+  playerY += playerChangeY
 
   if playerX <= 0:
     playerX = 0
   elif playerX >= 736:
     playerX = 736
     
+  if playerY <= 0:
+    playerY = 0
+  elif playerY >= 480:
+    playerY = 480
+
   # Enemy movement
   for i in range(enemyNums):
+
     # Game over when enemy collide with spaceship
-    if enemyY[i] > 440:
-      for j in range(enemyNums):
-        enemyY[j] = 3000
-      gameOver()
-      break
-    
+    if enemyY[i] >= playerY - 35:
+      if enemyX[i] >= playerX - 16 or enemyX[i] <= playerX + 16:
+        for j in range(enemyNums):
+          enemyY[j] = 3000
+        gameOver()
+        break
+
     enemyX[i] += enemyChangeX[i]
     if enemyX[i] <= 0:
       enemyChangeX[i] = 1
@@ -144,7 +159,7 @@ while running:
       enemyY[i] += enemyChangeY[i]
   
     collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
-    if collision is True:
+    if collision:
       explosionSound = mixer.Sound(".\images\\explosion.wav")
       explosionSound.play()
       bulletY = 480
@@ -160,7 +175,7 @@ while running:
     bulletState = 'ready'
 
   if bulletState == 'fire':
-    fire(playerX, bulletY)
+    fire(bulletX, bulletY)
     bulletY -= bulletYChange
 
   player(playerX, playerY)

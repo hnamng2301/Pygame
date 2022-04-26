@@ -106,13 +106,13 @@ while running:
     
     if event.type == pygame.KEYDOWN:
       if event.key == pygame.K_LEFT:
-        playerChangeX = -3
+        playerChangeX = -2
       elif event.key == pygame.K_RIGHT:
-        playerChangeX = 3
+        playerChangeX = 2
       elif event.key == pygame.K_DOWN:
-        playerChangeY = 3
+        playerChangeY = 2
       elif event.key == pygame.K_UP:
-        playerChangeY = -3
+        playerChangeY = -2
       elif event.key == pygame.K_SPACE:
         if bulletState == 'ready':
           bulletSound = mixer.Sound('.\images\\laser.wav')
@@ -143,8 +143,9 @@ while running:
   for i in range(enemyNums):
 
     # Game over when enemy collide with spaceship
-    if enemyY[i] >= playerY - 35:
-      if enemyX[i] >= playerX - 16 or enemyX[i] <= playerX + 16:
+    if enemyY[i] >= playerY - 40:
+      if (enemyX[i] >= playerX - 16 and enemyX[i] <= playerX) or (enemyX[i] <= playerX + 16 and enemyX[i] >= playerX):
+        print(playerX, enemyX[i])
         for j in range(enemyNums):
           enemyY[j] = 3000
         gameOver()
